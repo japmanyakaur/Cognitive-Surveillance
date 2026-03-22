@@ -1,28 +1,21 @@
 # modules/ai_reasoning.py
-import anthropic
+import google.generativeai as genai
 import config
 
-client = anthropic.Anthropic(api_key=config.ANTHROPIC_API_KEY)
+genai.configure(api_key=config.GEMINI_API_KEY)
+model = genai.GenerativeModel("gemini-1.5-flash")  # fast + free tier
 
 def explain_event(behavior_log: str) -> str:
-    """Send behavior log to Claude and get a natural language explanation."""
+    """Send behavior log to Gemini and get a natural language explanation."""
     try:
-        message = client.messages.create(
-            model="claude-opus-4-20250514",
-            max_tokens=300,
-            messages=[
-                {
-                    "role": "user",
-                    "content": (
-                        "You are a surveillance analyst AI. "
-                        "Based on the following behavior log from a CCTV system, "
-                        "write a concise 2-3 sentence security alert explanation "
-                        "describing what happened and why it is suspicious.\n\n"
-                        f"Log: {behavior_log}"
-                    )
-                }
-            ]
+        prompt = (
+            "You are a surveillance analyst AI. "
+            "Based on the following behavior log from a CCTV system, "
+            "write a concise 2-3 sentence security alert explanation "
+            "describing what happened and why it is suspicious.\n\n"
+            f"Log: {behavior_log}"
         )
-        return message.content[0].text
+        response = model.generate_content(prompt)
+        return response.text.strip()
     except Exception as e:
         return f"[AI reasoning unavailable: {e}]"

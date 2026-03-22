@@ -78,18 +78,31 @@ def run(video_path):
         # 3. Analyze behavior
         new_alerts = analyzer.update(frame_num, tracked_persons, objects)
 
-        # 4. Draw person boxes with tracker ID
+# 4. Draw person boxes with tracker ID
         if tracked_persons.tracker_id is not None:
             for i, tid in enumerate(tracked_persons.tracker_id):
                 box = tracked_persons.xyxy[i]
-                draw_box(frame, box, f"Person {tid}", COLOR_PERSON)
+                conf = tracked_persons.confidence[i]
+                if conf < 0.4:      # skip low confidence detections
+                    continue
+                draw_box(frame, box, f"P{tid}", COLOR_PERSON)
 
-        # 5. Draw object boxes
+        # 5. Draw object boxes — skip static/environmental objects
+        SKIP_LABELS = {
+            "traffic light", "stop sign", "parking meter",
+            "bench", "chair", "dining table", "tv", "laptop",
+            "building", "wall", "floor", "ceiling", "tree",
+            "pole", "sign"
+        }
         for i, box in enumerate(objects.xyxy):
             cls_id = int(objects.class_id[i])
             label = detector.model.names[cls_id]
+            conf = objects.confidence[i]
+            if label in SKIP_LABELS:    # skip environmental objects
+                continue
+            if conf < 0.5:              # skip low confidence objects
+                continue
             draw_box(frame, box, label, COLOR_OBJECT)
-
         # 6. Handle new alerts
         for alert in new_alerts:
             log_text = analyzer.build_behavior_log(alert)
@@ -142,4 +155,4 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--video", required=True, help="Path to video file")
     args = parser.parse_args()
-    run(args.video)
+    run(args.video) 
