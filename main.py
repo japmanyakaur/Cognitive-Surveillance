@@ -135,6 +135,9 @@ def run(video_path):
         ai_status = "thinking"
         result = describe_scene(p_count, o_count, ts, p_ids)
         scene_lines = wrap_text(result, max_chars=38)
+        # Save scene description to file
+        with open(config.SCENE_LOG_FILE, "a") as f:
+            f.write(f"[{ts}] {result}\n")
         ai_status = "idle"
         print(f"[SCENE] {result}")
 
@@ -219,7 +222,11 @@ def run(video_path):
         # Draw sidebar
         draw_sidebar(frame, frame_num, fps, person_count, object_count,
                      scene_lines, alert_lines, ai_status)
-
+    
+        # Auto-save every 50 frames
+        if frame_num % 50 == 0:
+            with open(config.LOG_FILE, "w") as f:
+                json.dump(all_events, f, indent=2)
         cv2.imshow("Cognitive Surveillance", frame)
         if cv2.waitKey(1) & 0xFF == ord("q"):
             break

@@ -26,3 +26,4 @@ SKIP_OBJECT_LABELS = {
     "bench", "chair", "car", "truck", "bus",
     "bicycle", "motorcycle"
 }
+SCENE_LOG_FILE = "outputs/scene_log.txt"
