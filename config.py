@@ -5,8 +5,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # --- Model ---
-YOLO_MODEL = "yolov8n.pt"
-YOLO_CONFIDENCE = 0.3
+YOLO_MODEL = "yolov8m.pt"
+YOLO_CONFIDENCE = 0.5
 PERSON_CLASS_ID = 0
 
 # --- Tracking ---
