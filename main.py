@@ -129,17 +129,17 @@ def run(video_path):
     print(f"[INFO] Scene AI description every 8 seconds")
     print(f"[INFO] Press 'q' to quit\n")
 
-    def fetch_scene_description(p_count, o_count, ts, p_ids):
-        """Runs in background thread so it doesn't freeze the video."""
-        nonlocal scene_lines, ai_status
-        ai_status = "thinking"
-        result = describe_scene(p_count, o_count, ts, p_ids)
-        scene_lines = wrap_text(result, max_chars=38)
-        # Save scene description to file
-        with open(config.SCENE_LOG_FILE, "a") as f:
-            f.write(f"[{ts}] {result}\n")
-        ai_status = "idle"
-        print(f"[SCENE] {result}")
+    def fetch_scene_description(current_frame, p_count, o_count, ts, p_ids):
+            nonlocal scene_lines, ai_status
+            ai_status = "thinking"
+            # Pass a copy of the frame so it doesn't get modified
+            frame_copy = current_frame.copy()
+            result = describe_scene(frame_copy, p_count, o_count, ts, p_ids)
+            scene_lines = wrap_text(result, max_chars=38)
+            ai_status = "idle"
+            print(f"[SCENE] {result}")
+            with open(config.SCENE_LOG_FILE, "a") as f:
+                f.write(f"[{ts}] {result}\n")
 
     while cap.isOpened():
         ret, frame = cap.read()
@@ -187,12 +187,12 @@ def run(video_path):
         ts_str = f"{hh:02}:{mm:02}:{ss:02}"
 
         if frame_num % SCENE_INTERVAL == 0 and ai_status == "idle":
-            t = threading.Thread(
-                target=fetch_scene_description,
-                args=(person_count, object_count, ts_str, active_pids),
-                daemon=True
-            )
-            t.start()
+                    t = threading.Thread(
+                        target=fetch_scene_description,
+                        args=(frame.copy(), person_count, object_count, ts_str, active_pids),
+                        daemon=True
+                    )
+                    t.start()
 
 # Handle abandoned object alerts
         for alert in new_alerts:
